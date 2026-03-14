@@ -1,0 +1,246 @@
+================================================================================
+REFUNDSHIELD AI - TEST INPUTS
+================================================================================
+
+Use these test cases to validate the RefundShield AI system.
+You can test via the frontend at http://localhost:3000 or using curl commands.
+
+================================================================================
+TEST CASE 1: LOW RISK - APPROVED (Legitimate claim)
+================================================================================
+Expected Result: Fraud Score 0-30, Decision: APPROVED, Refund Processed
+
+Order ID: ORDER_001_LEGIT
+Merchant Name: Amazon
+Payment ID: pay_Amazon12345
+Refund Amount: 1299.00
+Claim Reason: Received damaged smartphone. Screen cracked on delivery.
+Image: Upload any real product damage photo
+
+Expected Agents Triggered:
+- EvidenceAgent: Damage detected, low AI generation probability
+- MerchantAgent: Amazon verified
+- FraudAgent: Low score (approved)
+- RefundAgent: Razorpay refund processed
+
+================================================================================
+TEST CASE 2: HIGH RISK - REJECTED (AI-Generated Image)
+================================================================================
+Expected Result: Fraud Score 70-100, Decision: REJECTED
+
+Order ID: ORDER_002_FAKE
+Merchant Name: UnknownShop
+Payment ID: pay_Fraud99999
+Refund Amount: 4999.00
+Claim Reason: Product completely damaged. Found this image on google.
+Image: Upload any AI-generated or stock image
+
+Expected Agents Triggered:
+- EvidenceAgent: High AI-generated probability (+40 fraud points)
+- ImageSearch: Image found online (+30 fraud points)
+- FraudAgent: High score (rejected)
+
+================================================================================
+TEST CASE 3: MEDIUM RISK - MANUAL REVIEW (Suspicious URL)
+================================================================================
+Expected Result: Fraud Score 30-70, Decision: MANUAL_REVIEW
+
+Order ID: ORDER_003_SUSPICIOUS
+Merchant Name: NewStartup
+Payment ID: pay_New123
+Refund Amount: 2999.00
+Claim Reason: Item not working. Visit http://bit.ly/claim-help for photos.
+Image: Upload any image
+
+Expected Agents Triggered:
+- SecurityAgent: Suspicious URL detected (bit.ly) (+20 fraud points)
+- MerchantAgent: Unverified merchant (+20 fraud points)
+- FraudAgent: Medium score (manual review)
+
+================================================================================
+TEST CASE 4: LOW RISK - APPROVED (Verified Merchant)
+================================================================================
+Expected Result: Fraud Score 0-30, Decision: APPROVED
+
+Order ID: ORDER_004_FLIPKART
+Merchant Name: Flipkart
+Payment ID: pay_Flip456
+Refund Amount: 899.00
+Claim Reason: Wrong color delivered. Ordered black, received white.
+Image: Upload real product photo
+
+Expected Agents Triggered:
+- MerchantAgent: Flipkart verified
+- FraudAgent: Low score
+
+================================================================================
+TEST CASE 5: HIGH RISK - REJECTED (Image Reuse)
+================================================================================
+Expected Result: Fraud Score 70-100, Decision: REJECTED
+
+Order ID: ORDER_005_REUSED
+Merchant Name: RandomStore
+Payment ID: pay_Reuse789
+Refund Amount: 5999.00
+Claim Reason: Broken laptop screen. This is the exact damage I found.
+Image: Upload any commonly available stock photo
+
+Expected Agents Triggered:
+- ImageSearch: Image found multiple places online (+30 fraud points)
+- KnowledgeAgent: Similar fraud patterns found (+20 fraud points)
+- FraudAgent: High score (rejected)
+
+================================================================================
+TEST CASE 6: MEDIUM RISK - MANUAL REVIEW (New Merchant)
+================================================================================
+Expected Result: Fraud Score 30-70, Decision: MANUAL_REVIEW
+
+Order ID: ORDER_006_NEWMERCH
+Merchant Name: XYZUnknownStore2024
+Payment ID: pay_Unknown111
+Refund Amount: 3499.00
+Claim Reason: Defective electronics. Not functioning properly.
+Image: Upload unclear/blurry image
+
+Expected Agents Triggered:
+- MerchantAgent: Unverified merchant (+20 fraud points)
+- EvidenceAgent: Unclear evidence
+- FraudAgent: Medium score (manual review)
+
+================================================================================
+TEST CASE 7: LOW RISK - APPROVED (High Value, Legit)
+================================================================================
+Expected Result: Fraud Score 0-30, Decision: APPROVED
+
+Order ID: ORDER_007_HIGHVALUE
+Merchant Name: Zomato
+Payment ID: pay_Zomato777
+Refund Amount: 2500.00
+Claim Reason: Food spilled during delivery. Packaging was damaged.
+Image: Upload real food spill photo
+
+Expected Agents Triggered:
+- MerchantAgent: Zomato verified
+- EvidenceAgent: Genuine damage detected
+- RefundAgent: Razorpay refund processed
+
+================================================================================
+TEST CASE 8: HIGH RISK - REJECTED (Multiple Red Flags)
+================================================================================
+Expected Result: Fraud Score 70-100, Decision: REJECTED
+
+Order ID: ORDER_008_MULTI
+Merchant Name: scam-site.tk
+Payment ID: pay_Scam999
+Refund Amount: 9999.00
+Claim Reason: Complete product failure. Visit http://verify-now.tk/refund
+Image: Upload photoshopped/edited image
+
+Expected Agents Triggered:
+- SecurityAgent: Suspicious TLD (.tk), malicious URL (+40 fraud points)
+- MerchantAgent: Unverified/scam merchant (+20 fraud points)
+- EvidenceAgent: Manipulation detected (+35 fraud points)
+- FraudAgent: Very high score (rejected)
+
+================================================================================
+TEST CASE 9: MEDIUM RISK - MANUAL REVIEW (Missing Evidence)
+================================================================================
+Expected Result: Fraud Score 30-70, Decision: MANUAL_REVIEW
+
+Order ID: ORDER_009_NOIMAGE
+Merchant Name: LocalStore
+Payment ID: pay_Local555
+Refund Amount: 1500.00
+Claim Reason: Product missing from package. No evidence available.
+Image: No image uploaded
+
+Expected Agents Triggered:
+- EvidenceAgent: No image provided (+15 fraud points)
+- MerchantAgent: Unverified merchant (+20 fraud points)
+- FraudAgent: Medium score (manual review)
+
+================================================================================
+TEST CASE 10: LOW RISK - APPROVED (Swiggy - Verified)
+================================================================================
+Expected Result: Fraud Score 0-30, Decision: APPROVED
+
+Order ID: ORDER_010_SWIGGY
+Merchant Name: Swiggy
+Payment ID: pay_Swiggy888
+Refund Amount: 750.00
+Claim Reason: Wrong item delivered. Ordered veg, received non-veg.
+Image: Upload food photo
+
+Expected Agents Triggered:
+- MerchantAgent: Swiggy verified
+- FraudAgent: Low score (approved)
+- ResponseAgent: Approval email generated
+
+================================================================================
+CURL COMMAND EXAMPLES
+================================================================================
+
+You can also test using curl commands:
+
+# Test 1: Low Risk Claim
+curl -X POST http://localhost:8000/submit-claim \
+  -F "order_id=ORDER_001_LEGIT" \
+  -F "merchant_name=Amazon" \
+  -F "payment_id=pay_Amazon12345" \
+  -F "refund_amount=1299.00" \
+  -F "claim_reason=Received damaged smartphone" \
+  -F "image=@/path/to/damage_photo.jpg"
+
+# Test 3: Suspicious URL
+curl -X POST http://localhost:8000/submit-claim \
+  -F "order_id=ORDER_003_SUSPICIOUS" \
+  -F "merchant_name=NewStartup" \
+  -F "payment_id=pay_New123" \
+  -F "refund_amount=2999.00" \
+  -F "claim_reason=Visit http://bit.ly/claim-help for photos" \
+  -F "image=@/path/to/photo.jpg"
+
+# Get all claims
+curl http://localhost:8000/claims
+
+# Get events (S2.dev style)
+curl http://localhost:8000/events
+
+# Check sponsor integrations
+curl http://localhost:8000/sponsor-status
+
+================================================================================
+FRAUD SCORING BREAKDOWN
+================================================================================
+
+Scoring Rules:
+- AI image suspicion: +40 points
+- Image reused online: +30 points
+- Suspicious URL: +20 points
+- Unverified merchant: +20 points
+- Fraud case similarity: +20 points
+- Security threat: +25 points
+- Metadata anomaly: +15 points
+- Image manipulation: +35 points
+
+Decision Thresholds:
+- 0-30: APPROVE refund
+- 31-70: MANUAL REVIEW
+- 71-100: REJECT refund
+
+================================================================================
+EXPECTED DECISIONS SUMMARY
+================================================================================
+
+Test 1 (Amazon/Damage):    APPROVED    (Score: 10-25)
+Test 2 (AI Image):         REJECTED    (Score: 70-95)
+Test 3 (Suspicious URL):   MANUAL      (Score: 35-55)
+Test 4 (Flipkart):         APPROVED    (Score: 10-20)
+Test 5 (Image Reuse):      REJECTED    (Score: 75-90)
+Test 6 (New Merchant):     MANUAL      (Score: 40-60)
+Test 7 (Zomato):           APPROVED    (Score: 10-25)
+Test 8 (Multiple Flags):   REJECTED    (Score: 85-100)
+Test 9 (No Evidence):      MANUAL      (Score: 35-50)
+Test 10 (Swiggy):          APPROVED    (Score: 10-20)
+
+================================================================================
